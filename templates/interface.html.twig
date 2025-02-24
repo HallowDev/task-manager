@@ -1,0 +1,136 @@
+{% extends 'base.html.twig' %}
+
+{% block javascripts %}
+    <script>
+        async function updateTask(id) {
+            const title = document.getElementById('title').value;
+            const description = document.getElementById('description').value;
+            try {
+                const response = await fetch(`/api/updateTask/${id}/`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ title, description, status: false })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Erreur: ${response.status}`);
+                }
+
+                fetchItems();
+            } catch (error) {
+                console.error("Erreur lors de la mise à jour :", error);
+            }
+        }
+
+        async function finishTask(id) {
+            try {
+                const response = await fetch(`/api/finishTask/${id}/`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Erreur: ${response.status}`);
+                }
+
+                fetchItems();
+            } catch (error) {
+                console.error("Erreur lors de la mise à jour :", error);
+            }
+        }
+
+        async function deleteTask(id) {
+            try {
+                const response = await fetch(`/api/deleteTask/${id}/`, {
+                    method: 'GET',
+                    headers: { 'Content-Type': 'application/json' },
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Erreur: ${response.status}`);
+                }
+
+                fetchItems();
+            } catch (error) {
+                console.error("Erreur lors de la mise à jour :", error);
+            }
+        }
+        
+        async function fetchItems() {
+            const response = await fetch('/api/getAllTasks');
+            const data = await response.json();
+            console.log(data)
+            const list = document.getElementById('items-list');
+            list.innerHTML = '';
+
+            data.forEach(item => {
+                const li = document.createElement('li');
+                if (item.status) {
+                    var status = "Active"
+                } else {
+                    var status = "Finished"
+                }
+                li.textContent = `${item.title} (${item.description}) - ${status}`;
+
+                const br = document.createElement('br');
+                li.appendChild(br);
+
+                const update = document.createElement('button');
+                const end = document.createElement('button');
+                const remove = document.createElement('button');
+
+                update.textContent = "Update";
+                update.className = "btn btn-primary";
+                update.onclick = function() { updateTask(item.id) };
+
+                end.textContent = "End task";
+                end.style.marginLeft = "10px";
+                end.className = "btn btn-success";
+                end.onclick = function() { finishTask(item.id) };
+
+                remove.textContent = "Remove";
+                remove.style.marginLeft = "10px";
+                remove.className = "btn btn-danger";
+                remove.onclick = function() { deleteTask(item.id) };
+
+                li.appendChild(update);
+                li.appendChild(end);
+                li.appendChild(remove);
+
+                list.appendChild(li);
+            });
+        }
+
+        async function createTask() {
+            const title = document.getElementById('title').value;
+            const description = document.getElementById('description').value;
+            await fetch('/api/createTask', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ title, description })
+            });
+            fetchItems();
+        }
+
+
+        window.onload = fetchItems;
+    </script>
+{% endblock %}
+
+{% block body %}
+    <div class="container mt-5 w-25">
+        <h1 class="text-center mb-4">Task Manager</h1>
+        
+        <div class="card p-4 shadow-sm">
+            <div class="mb-3">
+                <input type="text" id="title" class="form-control" placeholder="Nom de la tâche">
+            </div>
+            <div class="mb-3">
+                <textarea type="text" id="description" class="form-control" rows="3" placeholder="Description"></textarea>
+            </div>
+            <button class="btn btn-primary w-100" onclick="createTask()">Add</button>
+        </div>
+        
+        <h2 class="mt-5">Tasks list</h2>
+        <div id="items-list" class="list-group mt-3"></div>
+{% endblock %}

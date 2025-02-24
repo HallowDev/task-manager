@@ -3,7 +3,6 @@
 namespace App\Controller;
 
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Attribute\Route;
 
 final class HomeController extends AbstractController
@@ -11,6 +10,6 @@ final class HomeController extends AbstractController
     #[Route('/', name: 'home')]
     public function index()
     {
-        return $this->redirectToRoute('api');
+        return $this->render('interface.html.twig');
     }
 }

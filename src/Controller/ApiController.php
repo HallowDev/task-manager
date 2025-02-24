@@ -6,8 +6,6 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Attribute\Route;
 use App\Entity\Task;
-use App\Form\TaskType;
-use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Request;
 use Doctrine\ORM\EntityManagerInterface;
 
@@ -47,7 +45,7 @@ final class ApiController extends AbstractController
         ]);
     }
 
-    #[Route('/api/deleteTask/{id}', name: 'deleteTask', methods: ['POST'])]
+    #[Route('/api/deleteTask/{id}', name: 'deleteTask', methods: ['GET'])]
     public function deleteTask(?Task $task): JsonResponse
     {
         if (!$task) {
@@ -55,7 +53,6 @@ final class ApiController extends AbstractController
                 'error' => 'Tâche non trouvée.'
             ], JsonResponse::HTTP_NOT_FOUND);
         }
-        
         $this->em->remove($task);
         $this->em->flush();
 
@@ -95,7 +92,25 @@ final class ApiController extends AbstractController
 
         $task->setTitle($data['title']);
         $task->setDescription($data['description']);
-        $task->setStatus($data['status']);
+        $this->em->persist($task);
+        $this->em->flush();
+
+        return $this->json([
+            'message' => 'The task has been successfully updated!',
+            'path' => 'src/Controller/ApiController.php',
+        ]);
+    }
+
+    #[Route('/api/finishTask/{id}/', name: 'finishTask', methods: ['PUT'])]
+    public function finishTask(?Task $task): JsonResponse
+    {
+        if (!$task) {
+            return $this->json([
+                'error' => 'Tâche non trouvée.'
+            ], JsonResponse::HTTP_NOT_FOUND);
+        }
+
+        $task->setStatus(false);
         $this->em->persist($task);
         $this->em->flush();
 
