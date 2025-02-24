@@ -63,6 +63,7 @@ class Task implements \JsonSerializable
         return $this;
     }
 
+    // fonction pour transformer l'objet task en json
     public function jsonSerialize(): array
     {
         return [

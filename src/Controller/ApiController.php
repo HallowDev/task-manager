@@ -18,15 +18,17 @@ final class ApiController extends AbstractController
     }
 
     #[Route('/api', name: 'api')]
+    // url racine
     public function index(): JsonResponse
     {
         return $this->json([
-            'message' => 'Welcome to the task manager!',
+            'message' => 'Welcome to the task manager api!',
             'path' => 'src/Controller/ApiController.php',
         ]);
     }
 
     #[Route('/api/createTask', name: 'createTask', methods: ['POST'])]
+    // fonction qui créé les tâches
     public function createTask(Request $request): JsonResponse
     {
         $task = new Task();
@@ -46,6 +48,7 @@ final class ApiController extends AbstractController
     }
 
     #[Route('/api/deleteTask/{id}', name: 'deleteTask', methods: ['GET'])]
+    // fonction qui supprime les tâches
     public function deleteTask(?Task $task): JsonResponse
     {
         if (!$task) {
@@ -63,6 +66,7 @@ final class ApiController extends AbstractController
     }
 
     #[Route('/api/findTask/{id}', name: 'findTask', methods: ['GET'])]
+    // fonction qui retrouve une tâche avec son id
     public function findTask(?Task $task): JsonResponse
     {
 
@@ -80,6 +84,7 @@ final class ApiController extends AbstractController
     }
 
     #[Route('/api/updateTask/{id}/', name: 'updateTask', methods: ['PUT'])]
+    // fonction qui met à jour les données d'une tâche
     public function updateTask(Request $request, ?Task $task): JsonResponse
     {
         if (!$task) {
@@ -102,6 +107,7 @@ final class ApiController extends AbstractController
     }
 
     #[Route('/api/finishTask/{id}/', name: 'finishTask', methods: ['PUT'])]
+    // fonction qui met à jour le statut d'une tâche
     public function finishTask(?Task $task): JsonResponse
     {
         if (!$task) {
@@ -121,6 +127,7 @@ final class ApiController extends AbstractController
     }
 
     #[Route('/api/getAllTasks/', name: 'getAllTasks', methods: ['GET'])]
+    // fonction qui récupère toutes les tâches
     public function getAllTasks(): JsonResponse
     {
         $repository = $this->em->getRepository(Task::class);
