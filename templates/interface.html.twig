@@ -2,12 +2,59 @@
 
 {% block javascripts %}
     <script>
+
+        let idUpdate = null;
+        let updateButton = document.createElement("button");
+        updateButton.id = "update";
+        updateButton.className = "btn btn-primary w-40";
+        updateButton.textContent = "Update";
+        updateButton.onclick = updateTask;
+        let addButton = document.createElement("button");
+        addButton.id = "add";
+        addButton.className = "btn btn-primary w-40";
+        addButton.textContent = "Add";
+        addButton.onclick = createTask;
+
+        async function clearForm() {
+            let input = document.getElementById("title");
+                let textarea = document.getElementById("description");
+                input.value = "";
+                textarea.value = "";
+        }
+
+        async function updateForm(id) {
+            idUpdate = id
+            try {
+                const response = await fetch(`/api/findTask/${id}/`, {
+                    method: 'GET',
+                    headers: { 'Content-Type': 'application/json' },
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Erreur: ${response.status}`);
+                }
+
+                const data = await response.json();
+
+                document.getElementById("title").value = data.title;
+                document.getElementById("description").value = data.description;
+
+                document.getElementById("add").remove();
+                console.log(updateButton)
+                document.getElementById("buttons").appendChild(updateButton);
+
+                getAllTasks();
+            } catch (error) {
+                console.error("Erreur lors de la mise à jour :", error);
+            }
+        }
+
         // fonction pour appeler la fonction qui met à jour les données d'une tâche
-        async function updateTask(id) {
+        async function updateTask() {
             const title = document.getElementById('title').value;
             const description = document.getElementById('description').value;
             try {
-                const response = await fetch(`/api/updateTask/${id}/`, {
+                const response = await fetch(`/api/updateTask/${idUpdate}/`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ title, description })
@@ -17,6 +64,9 @@
                     throw new Error(`Erreur: ${response.status}`);
                 }
 
+                document.getElementById("update").remove();
+                document.getElementById("buttons").appendChild(addButton);
+                clearForm()
                 getAllTasks();
             } catch (error) {
                 console.error("Erreur lors de la mise à jour :", error);
@@ -43,7 +93,10 @@
 
         // fonction pour appeler la fonction qui supprime les tâches
         async function deleteTask(id) {
-            try {
+            let confirmation = window.confirm("Êtes-vous sûr de vouloir supprimer cette tâche ?");
+    
+            if (confirmation) {
+                try {
                 const response = await fetch(`/api/deleteTask/${id}/`, {
                     method: 'GET',
                     headers: { 'Content-Type': 'application/json' },
@@ -52,10 +105,12 @@
                 if (!response.ok) {
                     throw new Error(`Erreur: ${response.status}`);
                 }
-
                 getAllTasks();
-            } catch (error) {
-                console.error("Erreur lors de la mise à jour :", error);
+                } catch (error) {
+                    console.error("Erreur lors de la mise à jour :", error);
+                }
+            } else {
+                console.log("Action annulée.");
             }
         }
         
@@ -85,7 +140,7 @@
 
                 update.textContent = "Update";
                 update.className = "btn btn-primary";
-                update.onclick = function() { updateTask(item.id) };
+                update.onclick = function() { updateForm(item.id) };
 
                 end.textContent = "End task";
                 end.style.marginLeft = "10px";
@@ -109,16 +164,26 @@
         async function createTask() {
             const title = document.getElementById('title').value;
             const description = document.getElementById('description').value;
+
+            if (!title || !description) {
+                alert("Title or description must be filled out");
+                return false;
+            }
+
             await fetch('/api/createTask', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ title, description })
             });
-           getAllTasks();
+            clearForm();
+            getAllTasks();
         }
 
+        window.onload = function() {
+            clearForm();
+            getAllTasks();
+        };
 
-        window.onload = getAllTasks;
     </script>
 {% endblock %}
 
@@ -133,7 +198,9 @@
             <div class="mb-3">
                 <textarea type="text" id="description" class="form-control" rows="3" placeholder="Description"></textarea>
             </div>
-            <button class="btn btn-primary w-100" onclick="createTask()">Add</button>
+            <div id="buttons" class="w-100">
+                <button id="add" class="btn btn-primary w-40" onclick="createTask()">Add</button>
+            </div>
         </div>
         
         <h2 class="mt-5">Tasks list</h2>
